@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>大红模拟账户 · 公开快照</title>
+  <link rel="stylesheet" href="./assets/paper.css?v=20261106-v1">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="刷新公开快照">
+        <span class="brand-mark" aria-hidden="true"><i data-lucide="activity"></i></span>
+        <span>
+          <strong>大红模拟账户</strong>
+          <small>只读公开快照 · 非真实持仓</small>
+        </span>
+      </a>
+      <div class="topbar-meta">
+        <span class="freshness"><i data-lucide="calendar-days"></i><b id="as-of">读取中</b></span>
+        <a class="refresh-link" href="./" title="刷新页面" aria-label="刷新页面">
+          <i data-lucide="refresh-cw"></i>
+        </a>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-band" aria-labelledby="page-title">
+        <div>
+          <span class="kicker">Paper Trading Archive</span>
+          <h1 id="page-title">四套独立模拟盘</h1>
+          <p>每日收盘后发布净值、持仓与交易审计。页面只展示模拟数据，不包含真实账户、真实持仓或后台地址。</p>
+        </div>
+        <div class="hero-status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <div>
+            <strong id="status-title">正在读取公开快照</strong>
+            <small id="generated-at">数据生成中</small>
+          </div>
+        </div>
+      </section>
+
+      <section id="overview-grid" class="overview-grid" aria-label="账户总览"></section>
+
+      <nav id="account-tabs" class="account-tabs" role="tablist" aria-label="切换模拟账户"></nav>
+
+      <section id="account-view" class="account-view" aria-live="polite">
+        <div class="loading-panel">正在载入账户数据</div>
+      </section>
+
+      <section class="method-band">
+        <div>
+          <span class="kicker">Reading Notes</span>
+          <h2>口径说明</h2>
+        </div>
+        <div class="method-grid">
+          <article>
+            <h3>数据边界</h3>
+            <p>仅包含长线优化、信鸽Phoenix、作者规则和组合风控四套模拟账户。</p>
+          </article>
+          <article>
+            <h3>价格口径</h3>
+            <p>持仓按模拟账户记录的最新收盘价盯市；成交已计入模拟费用。</p>
+          </article>
+          <article>
+            <h3>使用边界</h3>
+            <p>公开快照用于研究记录，不构成交易建议，不创建真实或模拟订单。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>大红模拟账户公开快照</span>
+      <span id="footer-date"></span>
+    </footer>
+  </div>
+
+  <div id="error-panel" class="error-panel" hidden>
+    <i data-lucide="circle-alert"></i>
+    <div>
+      <strong>公开快照读取失败</strong>
+      <p id="error-copy"></p>
+    </div>
+  </div>
+
+  <script src="./assets/lucide.min.js"></script>
+  <script src="./assets/paper.js?v=20261106-v1"></script>
+</body>
+</html>
