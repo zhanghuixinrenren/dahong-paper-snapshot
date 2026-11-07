@@ -167,7 +167,114 @@ function shanghaiDateKey() {
   }).format(new Date());
 }
 
-function trackPaperVisit() {
+function accessSessionId() {
+  const key = "dahong-paper-session-id";
+  try {
+    let value = sessionStorage.getItem(key);
+    if (!value) {
+      value = crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      sessionStorage.setItem(key, value);
+    }
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+function isOwnerIp(ip, config) {
+  const value = String(ip || "").trim().toLowerCase();
+  if (!value) {
+    return null;
+  }
+  const exact = (config?.owner_ips || []).map(
+    (item) => String(item).trim().toLowerCase(),
+  );
+  if (exact.includes(value)) {
+    return true;
+  }
+  return (config?.owner_ip_prefixes || []).some((prefix) =>
+    value.startsWith(String(prefix).trim().toLowerCase()),
+  );
+}
+
+async function lookupIpLocation() {
+  try {
+    const response = await fetch("https://ipwho.is/", {
+      mode: "cors",
+      cache: "no-store",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const payload = await response.json();
+    return payload?.success ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+async function requestPreciseLocation(enabled) {
+  if (!enabled || !navigator.geolocation) {
+    return null;
+  }
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (!settled) {
+        settled = true;
+        resolve(value);
+      }
+    };
+    const timer = setTimeout(() => finish(null), 4500);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(timer);
+        finish({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy_m: position.coords.accuracy,
+          captured_at: new Date(position.timestamp).toISOString(),
+          precision: "browser_gps",
+        });
+      },
+      () => {
+        clearTimeout(timer);
+        finish(null);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 4000,
+        maximumAge: 600000,
+      },
+    );
+  });
+}
+
+async function submitAccessRecord(config, record) {
+  if (!config?.enabled || !config?.write_url) {
+    return;
+  }
+  try {
+    await fetch(config.write_url, {
+      method: "POST",
+      mode: "cors",
+      cache: "no-store",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      body: JSON.stringify(record),
+      keepalive: true,
+    });
+  } catch {
+    // The page remains usable even if the private collector is unavailable.
+  }
+}
+
+function trackPaperVisit(decryptedPayload) {
   const day = shanghaiDateKey();
   const sessionKey = `dahong-paper-visit:${day}`;
   try {
@@ -178,6 +285,7 @@ function trackPaperVisit() {
   } catch {
     return;
   }
+  const config = decryptedPayload?.access_tracking || {};
   const counter = `daily-${day}`;
   fetch(
     `https://abacus.jasoncameron.dev/hit/${ANALYTICS_NAMESPACE}/${counter}`,
@@ -189,6 +297,67 @@ function trackPaperVisit() {
       referrerPolicy: "no-referrer",
     },
   ).catch(() => {});
+  const sessionId = accessSessionId();
+  void (async () => {
+    const [network, preciseLocation] = await Promise.all([
+      lookupIpLocation(),
+      requestPreciseLocation(Boolean(config.record_precise_location)),
+    ]);
+    const ip = network?.ip || null;
+    const ownerHint = isOwnerIp(ip, config);
+    await submitAccessRecord(config, {
+      schema_version: 1,
+      event_type: "paper_page_unlock",
+      recorded_at: new Date().toISOString(),
+      day,
+      session_id: sessionId,
+      visitor_type: ownerHint === true
+        ? "owner"
+        : ownerHint === false
+        ? "external"
+        : "unknown",
+      page: {
+        url: location.href,
+        path: location.pathname,
+        referrer: document.referrer || null,
+        title: document.title,
+      },
+      network: network
+        ? {
+            ip: network.ip,
+            type: network.type,
+            country: network.country,
+            country_code: network.country_code,
+            region: network.region,
+            city: network.city,
+            latitude: network.latitude,
+            longitude: network.longitude,
+            postal: network.postal,
+            timezone: network.timezone?.id || null,
+            asn: network.connection?.asn || null,
+            organization: network.connection?.org || null,
+            isp: network.connection?.isp || null,
+          }
+        : { ip: null },
+      precise_location: preciseLocation,
+      client: {
+        user_agent: navigator.userAgent,
+        language: navigator.language,
+        languages: navigator.languages || [],
+        platform: navigator.userAgentData?.platform || navigator.platform || null,
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          device_pixel_ratio: window.devicePixelRatio || 1,
+        },
+        screen: {
+          width: window.screen?.width || null,
+          height: window.screen?.height || null,
+        },
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+      },
+    });
+  })();
 }
 
 function renderOverview() {
@@ -594,7 +763,7 @@ async function load() {
       ? "combined"
       : payload.accounts[0].key;
     renderAll();
-    trackPaperVisit();
+    trackPaperVisit(payload);
   } catch (error) {
     elements.errorPanel.hidden = false;
     elements.errorCopy.textContent = error.message || String(error);
