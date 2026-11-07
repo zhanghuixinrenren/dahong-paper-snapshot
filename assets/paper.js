@@ -23,6 +23,7 @@ const ACCOUNT_ICONS = {
   author: "bot",
   combined: "shield-check",
 };
+const ANALYTICS_NAMESPACE = "dahong-paper-snapshot";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -155,6 +156,39 @@ async function requestPasswordAndDecrypt(envelope) {
 
 function accountIcon(key) {
   return ACCOUNT_ICONS[key] || "wallet-cards";
+}
+
+function shanghaiDateKey() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function trackPaperVisit() {
+  const day = shanghaiDateKey();
+  const sessionKey = `dahong-paper-visit:${day}`;
+  try {
+    if (sessionStorage.getItem(sessionKey)) {
+      return;
+    }
+    sessionStorage.setItem(sessionKey, "1");
+  } catch {
+    return;
+  }
+  const counter = `daily-${day}`;
+  fetch(
+    `https://abacus.jasoncameron.dev/hit/${ANALYTICS_NAMESPACE}/${counter}`,
+    {
+      method: "GET",
+      mode: "cors",
+      cache: "no-store",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+    },
+  ).catch(() => {});
 }
 
 function renderOverview() {
@@ -560,6 +594,7 @@ async function load() {
       ? "combined"
       : payload.accounts[0].key;
     renderAll();
+    trackPaperVisit();
   } catch (error) {
     elements.errorPanel.hidden = false;
     elements.errorCopy.textContent = error.message || String(error);
