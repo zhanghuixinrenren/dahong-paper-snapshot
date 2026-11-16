@@ -22,6 +22,7 @@ const ACCOUNT_ICONS = {
   legacy: "history",
   author: "bot",
   combined: "shield-check",
+  launch: "rocket",
 };
 const ANALYTICS_NAMESPACE = "dahong-paper-snapshot";
 
@@ -758,6 +759,10 @@ async function load() {
     }
     state.payload = payload;
     state.accountKey = payload.accounts.some(
+      (account) => account.key === "launch",
+    )
+      ? "launch"
+      : payload.accounts.some(
       (account) => account.key === "combined",
     )
       ? "combined"
