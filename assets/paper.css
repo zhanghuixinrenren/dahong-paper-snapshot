@@ -251,9 +251,21 @@ button.account-card:hover {
   background: var(--surface-2);
 }
 
-.account-card.is-active {
-  border-color: rgba(67, 214, 140, 0.68);
-  box-shadow: inset 0 0 0 1px rgba(67, 214, 140, 0.16);
+.account-card:is(.is-active, [aria-pressed="true"]) {
+  border-color: var(--green);
+  background:
+    linear-gradient(135deg, rgba(67, 214, 140, 0.2), rgba(67, 214, 140, 0.055) 52%, var(--surface-2));
+  box-shadow:
+    inset 0 0 0 1px rgba(67, 214, 140, 0.42),
+    0 0 0 2px rgba(67, 214, 140, 0.13),
+    0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.account-card:is(.is-active, [aria-pressed="true"]) .mini-pill {
+  border-color: var(--green);
+  background: var(--green);
+  color: #07120c;
+  font-weight: 700;
 }
 
 .account-card-head {
@@ -340,16 +352,22 @@ button.account-card:hover {
   height: 14px;
 }
 
-.account-tab:hover,
-.account-tab.is-active {
+.account-tab:hover {
   border-color: var(--border-strong);
   background: var(--surface-3);
   color: var(--text);
 }
 
-.account-tab.is-active {
-  border-color: rgba(67, 214, 140, 0.5);
-  color: var(--green);
+.account-tab:is(.is-active, [aria-selected="true"]) {
+  border-color: var(--green);
+  background: var(--green);
+  color: #07120c;
+  box-shadow: 0 0 0 2px rgba(67, 214, 140, 0.14);
+  font-weight: 700;
+}
+
+.account-tab:is(.is-active, [aria-selected="true"]) svg {
+  color: #07120c;
 }
 
 .account-view,
@@ -730,11 +748,25 @@ button.account-card:hover {
   cursor: pointer;
 }
 
-.activity-tab:hover,
-.activity-tab.is-active {
+.activity-tab:hover {
   border-color: var(--border-strong);
   background: var(--surface-2);
   color: var(--text);
+}
+
+.activity-tab.is-active {
+  border-color: var(--green);
+  background: var(--green);
+  color: #07120c;
+  box-shadow: 0 0 0 2px rgba(67, 214, 140, 0.13);
+  font-weight: 700;
+}
+
+.account-card:focus-visible,
+.account-tab:focus-visible,
+.activity-tab:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
 }
 
 .activity-list {
