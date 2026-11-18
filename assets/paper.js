@@ -23,6 +23,7 @@ const ACCOUNT_ICONS = {
   author: "bot",
   combined: "shield-check",
   launch: "rocket",
+  d1: "sunset",
 };
 const ANALYTICS_NAMESPACE = "dahong-paper-snapshot";
 
@@ -759,6 +760,10 @@ async function load() {
     }
     state.payload = payload;
     state.accountKey = payload.accounts.some(
+      (account) => account.key === "d1",
+    )
+      ? "d1"
+      : payload.accounts.some(
       (account) => account.key === "launch",
     )
       ? "launch"
